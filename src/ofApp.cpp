@@ -13,7 +13,6 @@ void ofApp::setup() {
 	buton.addListener(this, &ofApp::buttonPressed);
 	slider.addListener(this, &ofApp::sliderChanged);
 	gui.setup();
-	t = 1 / T;
 	gui.add(screenSize.setup("screen size", ofToString(ofGetWidth()) + "x" + ofToString(ofGetHeight())));
 	//gui.add(ofParExample.set("nameIWantToRetrieve", false));
 	gui.add(slider.setup("select X", 5, 2, ofGetWidth()));
@@ -50,6 +49,7 @@ vector <ofPoint> interpolate(ofPoint n1, ofPoint n2, ofPoint n3, float t)
 	vector <ofPoint> a;
 	ofPoint Q0 = (1 - t)*n1 + t * n2;
 	ofPoint Q1 = (1 - t)*n2 + t * n3;
+	cout << Q0.x<< Q0.y << Q1.x << Q0.y << "intermedios \n";
 	a.push_back(Q0);
 	a.push_back(Q1);
 	return a;
@@ -135,8 +135,8 @@ void ofApp::mouseDragged(int x, int y, int button) {
 void ofApp::mousePressed(int x, int y, int button) {
 	ofPoint pt;
 	pt.set(x, y);
-	cout << "x" << pt.x << pt.y;
-	cout << "vectores" << puntos.size() << intermedios.size();
+	cout << "x y :" << pt.x <<" "<< pt.y;
+	//cout << "vectores" << puntos.size() << intermedios.size();
 	puntos.push_back(pt);
 	line.addVertex(pt);
 	if (puntos.size() > 3) {
@@ -147,14 +147,18 @@ void ofApp::mousePressed(int x, int y, int button) {
 				ofPoint punto = puntos[i];
 				ofPoint punto1 = puntos[i+1];
 				ofPoint punto2 = puntos[i + 2];
-			
+				float tacum = 0.0;
 				vector <ofPoint> newQ;
-				newQ = interpolate(punto,punto1,punto2,t);
+				while (1>tacum) {
+					newQ = interpolate(punto, punto1, punto2, t);
+					lineInter.addVertex(newQ[0]);
+					lineInter.addVertex(newQ[1]);
 
-
-				intermedios.insert(intermedios.end(), newQ.begin(), newQ.end());
-
-
+					intermedios.insert(intermedios.end(), newQ.begin(), newQ.end());
+					tacum = tacum + t;
+					cout << tacum<<"tacum \n";
+				}
+				
 				//ptQ.set(interpolate(punto.x,punto1.x,t),interpolate(punto.y,punto1.y,t));
 				//intermedios.push_back(ptQ);
 				
