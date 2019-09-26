@@ -45,9 +45,16 @@ void ofApp::exit() {
 	buton.removeListener(this, &ofApp::buttonPressed);
 }
 
-float interpolate(float n1, float n2, float t)
-{//		(1-t)*n1+t*n2
-	return(n1 + ((n2 - n1) * t));
+vector <ofPoint> interpolate(ofPoint n1, ofPoint n2, ofPoint n3, float t)
+{
+	vector <ofPoint> a;
+	ofPoint Q0 = (1 - t)*n1 + t * n2;
+	ofPoint Q1 = (1 - t)*n2 + t * n3;
+	a.push_back(Q0);
+	a.push_back(Q1);
+	return a;
+	//		(1-t)*n1+t*n2
+	//(n1 + ((n2 - n1) * t));
 }
 
 void ofApp::buttonPressed() {
@@ -132,23 +139,27 @@ void ofApp::mousePressed(int x, int y, int button) {
 	cout << "vectores" << puntos.size() << intermedios.size();
 	puntos.push_back(pt);
 	line.addVertex(pt);
-	if (puntos.size() > 2) {
+	if (puntos.size() > 3) {
 		// puntos intermedios 
 		
 		for (int i = 0; i < puntos.size(); i++){
-			if (i+1 < puntos.size()){
+			if (i+2 < puntos.size()){
 				ofPoint punto = puntos[i];
 				ofPoint punto1 = puntos[i+1];
+				ofPoint punto2 = puntos[i + 2];
 			
-				ofPoint ptQ;
-				ptQ.set(interpolate(punto.x,punto1.x,t),interpolate(punto.y,punto1.y,t));
-				intermedios.push_back(ptQ);
+				vector <ofPoint> newQ;
+				newQ = interpolate(punto,punto1,punto2,t);
+
+
+				intermedios.insert(intermedios.end(), newQ.begin(), newQ.end());
+
+
+				//ptQ.set(interpolate(punto.x,punto1.x,t),interpolate(punto.y,punto1.y,t));
+				//intermedios.push_back(ptQ);
 				
 				cout << "intermedios Q " << intermedios[i].x<<" " << intermedios[i].y << "\n";
-				if (intermedios.size() % 2 == 0) {
-					lineInter.addVertex(intermedios[0]);
-					lineInter.addVertex(intermedios[1]);
-				}
+				
 			}
 		}	
 	}
