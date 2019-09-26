@@ -5,6 +5,7 @@
 using namespace std;
 
 ofPlanePrimitive plane;
+
 //--------------------------------------------------------------
 void ofApp::setup() {
 	ofSetVerticalSync(true);
@@ -45,8 +46,8 @@ void ofApp::exit() {
 }
 
 float interpolate(float n1, float n2, float t)
-{
-	return n1 + ((n2 - n1) * t);
+{//		(1-t)*n1+t*n2
+	return(n1 + ((n2 - n1) * t));
 }
 
 void ofApp::buttonPressed() {
@@ -127,25 +128,32 @@ void ofApp::mouseDragged(int x, int y, int button) {
 void ofApp::mousePressed(int x, int y, int button) {
 	ofPoint pt;
 	pt.set(x, y);
-	puntos[numPuntos]=pt;
+	cout << "x" << pt.x << pt.y;
+	cout << "vectores" << puntos.size() << intermedios.size();
+	puntos.push_back(pt);
 	line.addVertex(pt);
-	numPuntos++;
-	if (numPuntos > 2) {
+	if (puntos.size() > 2) {
 		// puntos intermedios 
-		ofPoint Pintermedios [100];
-		for (int i = 0; i < numPuntos; i++){
-			if (i+1 < numPuntos){
+		
+		for (int i = 0; i < puntos.size(); i++){
+			if (i+1 < puntos.size()){
 				ofPoint punto = puntos[i];
 				ofPoint punto1 = puntos[i+1];
 			
 				ofPoint ptQ;
 				ptQ.set(interpolate(punto.x,punto1.x,t),interpolate(punto.y,punto1.y,t));
-				intermedios[numQ]= ptQ;
-				lineInter.addVertex(ptQ);
-
+				intermedios.push_back(ptQ);
+				
+				cout << "intermedios Q " << intermedios[i].x<<" " << intermedios[i].y << "\n";
+				if (intermedios.size() % 2 == 0) {
+					lineInter.addVertex(intermedios[0]);
+					lineInter.addVertex(intermedios[1]);
+				}
 			}
 		}	
 	}
+
+	cout << "puntos " << puntos[puntos.size()-1].x << " " << puntos[puntos.size() - 1].y << "\n";
 }
 
 //--------------------------------------------------------------
