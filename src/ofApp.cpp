@@ -63,9 +63,18 @@ void ofApp::buttonPressed() {
 	line.clear();
 	lineInter.clear();
 	limpialinea = false;
+	while (!intermedios.empty()) {
+		intermedios.pop_back();
+	}
+
+	while (!puntos.empty()) {
+		puntos.pop_back();
+	}
+
 	cout << "ingresar saltos \n";
 	cin >> T;
 	t = 1 / T;
+
 	/*
 	ofPoint pt;
 	ofPoint ptF;
