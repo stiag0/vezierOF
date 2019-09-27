@@ -44,6 +44,11 @@ void ofApp::exit() {
 	buton.removeListener(this, &ofApp::buttonPressed);
 }
 
+ofPoint interpolateSimplex(ofPoint n1, ofPoint n2, float t) {
+	ofPoint Q0 = (1 - t)*n1 + t * n2;
+	return Q0;
+}
+
 vector <ofPoint> interpolate(ofPoint n1, ofPoint n2, ofPoint n3, float t)
 {
 	vector <ofPoint> a;
@@ -144,42 +149,55 @@ void ofApp::mouseDragged(int x, int y, int button) {
 void ofApp::mousePressed(int x, int y, int button) {
 	ofPoint pt;
 	pt.set(x, y);
-	cout << "x y :" << pt.x <<" "<< pt.y;
+	cout << "x y :" << pt.x << " " << pt.y;
 	//cout << "vectores" << puntos.size() << intermedios.size();
 	puntos.push_back(pt);
 	line.addVertex(pt);
 	if (puntos.size() > 3) {
 		// puntos intermedios 
-		
-		for (int i = 0; i < puntos.size(); i++){
-			if (i+2 < puntos.size()){
+
+		for (int i=0, j = 0; i < puntos.size(); i++) {
+			if (i + 2 < puntos.size()) {
 				ofPoint punto = puntos[i];
-				ofPoint punto1 = puntos[i+1];
+				ofPoint punto1 = puntos[i + 1];
 				ofPoint punto2 = puntos[i + 2];
 				float tacum = 0.0;
 				vector <ofPoint> newQ;
-				while (1>tacum) {
-					newQ = interpolate(punto, punto1, punto2, t);
+				while (1 > tacum) {
+					newQ = interpolate(punto, punto1, punto2, tacum);
 					lineInter.addVertex(newQ[0]);
 					lineInter.addVertex(newQ[1]);
 
 					intermedios.insert(intermedios.end(), newQ.begin(), newQ.end());
+					if (tacum == 0.0)
+					{
+
+					}
 					tacum = tacum + t;
-					cout << tacum<<"tacum \n";
+					//cout << tacum<<"tacum \n";
 				}
 				
-				//ptQ.set(interpolate(punto.x,punto1.x,t),interpolate(punto.y,punto1.y,t));
-				//intermedios.push_back(ptQ);
-				
-				cout << "intermedios Q " << intermedios[i].x<<" " << intermedios[i].y << "\n";
-				
 			}
-		}	
+			/*
+			if (j + 1 < intermedios.size()) {
+				ofPoint punto = intermedios[j];
+				ofPoint punto1 = intermedios[j + 1];
+				float tacum = 0.0;
+				ofPoint newQ;
+				while (1 > tacum) {
+					newQ = interpolateSimplex(punto, punto1, tacum);
+					ofDrawCircle(newQ.x, newQ.y, 2);
+					tacum = tacum + 0.00001;
+					//cout << tacum<<"tacum \n";
+				}
+			}
+			*/
+		}
+
+		cout << "puntos " << puntos[puntos.size() - 1].x << " " << puntos[puntos.size() - 1].y << "\n";
+
 	}
-
-	cout << "puntos " << puntos[puntos.size()-1].x << " " << puntos[puntos.size() - 1].y << "\n";
 }
-
 //--------------------------------------------------------------
 void ofApp::mouseReleased(int x, int y, int button) {
 
