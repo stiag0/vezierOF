@@ -1,26 +1,15 @@
 #include "ofApp.h"
-#include <list>
-#include <vector>
-#include <iterator>
 using namespace std;
-
-ofPlanePrimitive plane;
-
 //--------------------------------------------------------------
 void ofApp::setup() {
-	ofSetVerticalSync(true);
-
-	buton.addListener(this, &ofApp::buttonPressed);
-	slider.addListener(this, &ofApp::sliderChanged);
+	ofSetWindowTitle("Bezier");
 	gui.setup();
-	gui.add(screenSize.setup("screen size", ofToString(ofGetWidth()) + "x" + ofToString(ofGetHeight())));
-	//gui.add(ofParExample.set("nameIWantToRetrieve", false));
-	gui.add(slider.setup("select X", 5, 2, ofGetWidth()));
-	gui.add(buton.setup("boton pintar"));
-	//ofAddListener(groupParam.parameterChangedE(), this, &ofApp::nameExtractionParam);
-
-	plane.set(350, 350);   ///dimensions for width and height in pixels
-	plane.setPosition(500, 350, 0); /// position in x y z
+	gui.add(accuracy.setup("t", 5555, 1, 15000));
+	gui.add(clearBtn.setup("erase"));
+	gui.add(drawBtn.setup("draw"));
+	ofSetFrameRate(60);
+	drawPressed = false;
+	anchor_image.load("targetmin.png");
 }
 
 //--------------------------------------------------------------
@@ -30,101 +19,60 @@ void ofApp::update() {
 
 //--------------------------------------------------------------
 void ofApp::draw() {
-	ofSetColor(255, 255, 255, 255);
-	plane.draw();
+	if (clearBtn) {
+		drawPressed = false;
+		controlPts.clear();
+	}
+
+	if (drawBtn) 
+		drawPressed = true;
+
+	if (drawPressed) {
+		std::vector<ofVec2f> end = bezier_curve(controlPts, accuracy);
+		if (end.size() > 1) {
+			ofSetColor(ofColor::black);
+			for (unsigned int i = 0; i < controlPts.size()-1; ++i) {
+				ofDrawLine(controlPts[i].x, controlPts[i].y, controlPts[i + 1].x, controlPts[i + 1].y);
+			}
+			ofSetColor(ofColor::blue);
+			for (unsigned int i = 0; i < end.size(); ++i) {
+				ofCircle(end[i].x, end[i].y, 1);
+			}
+		}
+	}
 	gui.draw();
-	ofSetColor(0, 0, 0, 255);
-	line.draw();
-	ofSetColor(0, 255, 0, 255);
-	lineInter.draw();
 }
 
-//------------MIO-----------------------------------------------------
-void ofApp::exit() {
-	buton.removeListener(this, &ofApp::buttonPressed);
+//-----------M----------------------------------
+
+float ofApp::interpolate(float pos1, float pos2, float accuracy) {
+	return (1 - accuracy) * pos1 + accuracy * pos2;
 }
 
-ofPoint interpolateSimplex(ofPoint n1, ofPoint n2, float t) {
-	ofPoint Q0 = (1 - t)*n1 + t * n2;
-	return Q0;
-}
+vector<ofVec2f> ofApp::bezier_curve(vector<ofVec2f>& anchor, float accuracy) {
+	if (anchor.size() <= 2)
+		return anchor;
 
-vector <ofPoint> interpolate(ofPoint n1, ofPoint n2, ofPoint n3, float t)
-{
-	vector <ofPoint> a;
-	ofPoint Q0 = (1 - t)*n1 + t * n2;
-	ofPoint Q1 = (1 - t)*n2 + t * n3;
-	cout << Q0.x<< Q0.y << Q1.x << Q0.y << "intermedios \n";
-	a.push_back(Q0);
-	a.push_back(Q1);
-	return a;
-	//		(1-t)*n1+t*n2
-	//(n1 + ((n2 - n1) * t));
-}
+	vector<ofVec2f> end;
 
-void ofApp::buttonPressed() {
-	numPuntos =0;
-	numQ = 0;
-	line.clear();
-	lineInter.clear();
-	limpialinea = false;
-	while (!intermedios.empty()) {
-		intermedios.pop_back();
+	for (float i = 0.f; i < accuracy; ++i) {
+		float t = i / accuracy;
+
+		vector<ofVec2f> temp(anchor);
+
+		while (temp.size() > 1) {
+			vector<ofVec2f> temp2;
+			for (unsigned int j = 1; j < temp.size(); ++j)
+				temp2.push_back(ofVec2f(interpolate(temp[j - 1].x, temp[j].x, t),
+					interpolate(temp[j - 1].y, temp[j].y, t)));
+			temp.swap(temp2);
+		}
+		end.push_back(temp.front());
 	}
-
-	while (!puntos.empty()) {
-		puntos.pop_back();
-	}
-
-	cout << "ingresar saltos \n";
-	cin >> T;
-	t = 1 / T;
-
-	/*
-	ofPoint pt;
-	ofPoint ptF;
-
-	line.addVertex(pt);
-	//agrgar nodos visibles
-	//defino los rangos de X y Y
-	int inX = plane.getX() - (plane.getWidth() / 2);
-	int fiX = plane.getX() + (plane.getWidth() / 2);
-	if (x > inX && x < fiX) {
-		ofPoint ptDen1;
-		ofPoint ptDen2;
-		cout << "entre\n";
-
-		ptDen1.set(x, plane.getY() - (plane.getHeight() / 2));
-		ptDen2.set(x, plane.getY() + (plane.getHeight() / 2));
-		lineInter.addVertex(ptDen1);
-		lineInter.addVertex(ptDen2);
-
-	}
-	ptF.set(x, 900);
-	cout << "inicio" << inX << "\n";
-	cout << "fin" << fiX << "\n";
-
-	line.addVertex(ptF);
-	limpialinea = true;
-	*/
-
-}
-void ofApp::sliderChanged(int &slider) {
-	//ofSetslider(slider);
-	x = slider;
-
-
+	return end;
 }
 
-/*
-void ofApp::nameExtractionParam(ofAbstractParameter& parameter) {
-	vector<string> hierarchy = parameter.getGroupHierarchyNames();
-	auto escaped = parameter.getEscapedName();
-	auto stringName = parameter.toString();
-	// cut the hierarchy name here
-	// and use it for something else
-}
-*/
+
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key) {
 
@@ -142,62 +90,13 @@ void ofApp::mouseMoved(int x, int y) {
 
 //--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button) {
-	
 }
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button) {
-	ofPoint pt;
-	pt.set(x, y);
-	cout << "x y :" << pt.x << " " << pt.y;
-	//cout << "vectores" << puntos.size() << intermedios.size();
-	puntos.push_back(pt);
-	line.addVertex(pt);
-	if (puntos.size() > 3) {
-		// puntos intermedios 
-
-		for (int i=0, j = 0; i < puntos.size(); i++) {
-			if (i + 2 < puntos.size()) {
-				ofPoint punto = puntos[i];
-				ofPoint punto1 = puntos[i + 1];
-				ofPoint punto2 = puntos[i + 2];
-				float tacum = 0.0;
-				vector <ofPoint> newQ;
-				while (1 > tacum) {
-					newQ = interpolate(punto, punto1, punto2, tacum);
-					lineInter.addVertex(newQ[0]);
-					lineInter.addVertex(newQ[1]);
-
-					intermedios.insert(intermedios.end(), newQ.begin(), newQ.end());
-					if (tacum == 0.0)
-					{
-
-					}
-					tacum = tacum + t;
-					//cout << tacum<<"tacum \n";
-				}
-				
-			}
-			/*
-			if (j + 1 < intermedios.size()) {
-				ofPoint punto = intermedios[j];
-				ofPoint punto1 = intermedios[j + 1];
-				float tacum = 0.0;
-				ofPoint newQ;
-				while (1 > tacum) {
-					newQ = interpolateSimplex(punto, punto1, tacum);
-					ofDrawCircle(newQ.x, newQ.y, 2);
-					tacum = tacum + 0.00001;
-					//cout << tacum<<"tacum \n";
-				}
-			}
-			*/
-		}
-
-		cout << "puntos " << puntos[puntos.size() - 1].x << " " << puntos[puntos.size() - 1].y << "\n";
-
-	}
+	controlPts.push_back(ofVec2f(x, y));
 }
+
 //--------------------------------------------------------------
 void ofApp::mouseReleased(int x, int y, int button) {
 
