@@ -33,6 +33,7 @@ void ofApp::draw() {
 			ofSetColor(ofColor::black);
 			for (unsigned int i = 0; i < controlPts.size()-1; ++i) {
 				ofDrawLine(controlPts[i].x, controlPts[i].y, controlPts[i + 1].x, controlPts[i + 1].y);
+				anchor_image.draw(controlPts[i].x, controlPts[i].y);
 			}
 			ofSetColor(ofColor::blue);
 			for (unsigned int i = 0; i < end.size(); ++i) {
